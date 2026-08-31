@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
+    <edge id="north_in" from="N" to="C" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="north_out" from="C" to="N" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="south_in" from="S" to="C" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="south_out" from="C" to="S" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="east_in" from="E" to="C" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="east_out" from="C" to="E" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="west_in" from="W" to="C" priority="1" numLanes="1" speed="13.89"/>
+    <edge id="west_out" from="C" to="W" priority="1" numLanes="1" speed="13.89"/>
+</edges>
