@@ -6,7 +6,7 @@ Calculates dynamic green light times based on real-time lane densities, queue le
 and cumulative waiting times provided by the Digital Twin.
 """
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional
 import traci
 from ..digital_twin.digital_twin_system import DigitalTwin
 

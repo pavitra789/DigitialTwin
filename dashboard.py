@@ -497,53 +497,90 @@ with col5:
 
 st.markdown("---")
 
-# Main 2-Column Section: 2D Digital Twin Map & AI Predictions
+# Main 2-Column Section: 3D Digital Twin Map & AI Predictions
 left_col, right_col = st.columns([1.2, 1])
 
 with left_col:
-    st.subheader("📍 2D Intersection Digital Twin (Live SUMO Mirror)")
+    st.subheader("📍 3D Intersection Digital Twin (Live SUMO Mirror)")
 
     fig_map = go.Figure()
 
-    # Roads (North-South & East-West) with neon borders
-    fig_map.add_shape(type="rect", x0=-22, y0=-100, x1=22, y1=100, fillcolor="#0f172a", line_color="#38bdf8", line_width=2)
-    fig_map.add_shape(type="rect", x0=-100, y0=-22, x1=100, y1=22, fillcolor="#0f172a", line_color="#38bdf8", line_width=2)
+    # Base platform and roads to create a 3D intersection model
+    fig_map.add_trace(go.Scatter3d(
+        x=[-120, -120, 120, 120, -120],
+        y=[-25, 25, 25, -25, -25],
+        z=[0, 0, 0, 0, 0],
+        mode="lines",
+        line=dict(color="#1f2937", width=10),
+        hoverinfo="skip",
+        showlegend=False
+    ))
+    fig_map.add_trace(go.Scatter3d(
+        x=[-25, 25, 25, -25, -25],
+        y=[-120, -120, 120, 120, -120],
+        z=[0, 0, 0, 0, 0],
+        mode="lines",
+        line=dict(color="#1f2937", width=10),
+        hoverinfo="skip",
+        showlegend=False
+    ))
 
-    # Center Junction Box with Glowing Emerald/Cyan Outline
-    fig_map.add_shape(type="rect", x0=-22, y0=-22, x1=22, y1=22, fillcolor="#020617", line_color="#a855f7", line_width=3)
+    # Lane divider lines for a clearer 3D road layout
+    lane_markers = [
+        (-60, -100, 100, 0.12),
+        (-60, 100, -100, 0.12),
+        (60, -100, 100, 0.12),
+        (60, 100, -100, 0.12),
+        (-100, -60, 60, 0.12),
+        (100, -60, 60, 0.12),
+        (-100, 60, -60, 0.12),
+        (100, 60, -60, 0.12),
+    ]
+    for x1, y1, y2, z_val in lane_markers:
+        fig_map.add_trace(go.Scatter3d(
+            x=[x1, x1], y=[y1, y2], z=[z_val, z_val],
+            mode="lines",
+            line=dict(color="#facc15", width=3, dash="dash"),
+            hoverinfo="skip",
+            showlegend=False
+        ))
 
-    # Lane divider dash lines
-    fig_map.add_shape(type="line", x0=0, y0=-100, x1=0, y1=-22, line=dict(color="#facc15", width=2, dash="dash"))
-    fig_map.add_shape(type="line", x0=0, y0=22, x1=0, y1=100, line=dict(color="#facc15", width=2, dash="dash"))
-    fig_map.add_shape(type="line", x0=-100, y0=0, x1=-22, y1=0, line=dict(color="#facc15", width=2, dash="dash"))
-    fig_map.add_shape(type="line", x0=22, y0=0, x1=100, y1=0, line=dict(color="#facc15", width=2, dash="dash"))
+    # Junction square and signal towers
+    fig_map.add_trace(go.Scatter3d(
+        x=[-22, 22, 22, -22, -22],
+        y=[-22, -22, 22, 22, -22],
+        z=[0.1, 0.1, 0.1, 0.1, 0.1],
+        mode="lines",
+        line=dict(color="#a855f7", width=4),
+        hoverinfo="skip",
+        showlegend=False
+    ))
 
-    # Traffic Signals with high-contrast text and glowing badges
     is_ns_green = snapshot["signal"]["current_phase"] == 0
     ns_color = "#10b981" if is_ns_green else "#ef4444"
     ew_color = "#ef4444" if is_ns_green else "#10b981"
 
-    fig_map.add_trace(go.Scatter(
-        x=[0, 0], y=[28, -28], mode="markers+text",
-        marker=dict(size=22, color=ns_color, line=dict(color="#ffffff", width=2)),
-        text=["🚦 NS Signal", "🚦 NS Signal"], textposition="top center",
-        textfont=dict(color="#ffffff", size=12, family="Inter, sans-serif"),
-        name="North-South Signal"
+    fig_map.add_trace(go.Scatter3d(
+        x=[0, 0], y=[28, -28], z=[0.8, 0.8],
+        mode="markers",
+        marker=dict(size=18, color=[ns_color, ns_color], line=dict(color="#ffffff", width=1.5)),
+        name="North-South Signal",
+        hovertemplate="Signal: %{y}<extra></extra>"
     ))
-    fig_map.add_trace(go.Scatter(
-        x=[28, -28], y=[0, 0], mode="markers+text",
-        marker=dict(size=22, color=ew_color, line=dict(color="#ffffff", width=2)),
-        text=["🚦 EW Signal", "🚦 EW Signal"], textposition="top center",
-        textfont=dict(color="#ffffff", size=12, family="Inter, sans-serif"),
-        name="East-West Signal"
+    fig_map.add_trace(go.Scatter3d(
+        x=[28, -28], y=[0, 0], z=[0.8, 0.8],
+        mode="markers",
+        marker=dict(size=18, color=[ew_color, ew_color], line=dict(color="#ffffff", width=1.5)),
+        name="East-West Signal",
+        hovertemplate="Signal: %{x}<extra></extra>"
     ))
 
-    # Live Vehicles on Approach Arms
+    # Live vehicles placed in 3D across the intersection approaches
     for lid, lane in twin.lanes.items():
         cnt = lane.vehicle_count
         if cnt == 0:
             continue
-        
+
         if "north" in lid:
             ys = np.linspace(38, 90, cnt)
             xs = [6] * cnt
@@ -558,21 +595,34 @@ with left_col:
             ys = [6] * cnt
 
         veh_colors = ["#ef4444" if lane.has_emergency_vehicle and i == 0 else "#38bdf8" for i in range(cnt)]
-        fig_map.add_trace(go.Scatter(
-            x=xs, y=ys, mode="markers",
-            marker=dict(size=14, color=veh_colors, symbol="square", line=dict(color="#ffffff", width=1.5)),
-            name=f"{lid} ({cnt} vehs)"
+        fig_map.add_trace(go.Scatter3d(
+            x=xs,
+            y=ys,
+            z=[1.2] * cnt,
+            mode="markers",
+            marker=dict(size=8, color=veh_colors, symbol="diamond", line=dict(color="#ffffff", width=1)),
+            name=f"{lid} ({cnt} vehs)",
+            hovertemplate=f"{lid}<br>Vehicles: {cnt}<extra></extra>"
         ))
 
     fig_map.update_layout(
-        xaxis=dict(range=[-110, 110], visible=False),
-        yaxis=dict(range=[-110, 110], visible=False),
         height=430,
         margin=dict(l=10, r=10, t=10, b=10),
-        plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         showlegend=True,
-        legend=dict(font=dict(color="#ffffff"))
+        legend=dict(font=dict(color="#ffffff")),
+        scene=dict(
+            xaxis=dict(visible=False, range=[-110, 110]),
+            yaxis=dict(visible=False, range=[-110, 110]),
+            zaxis=dict(visible=False, range=[0, 16]),
+            aspectmode="manual",
+            aspectratio=dict(x=1.2, y=1.2, z=0.6),
+            camera=dict(
+                eye=dict(x=1.6, y=1.6, z=1.2),
+                center=dict(x=0, y=0, z=-0.2)
+            )
+        )
     )
     st.plotly_chart(fig_map, width='stretch')
 
